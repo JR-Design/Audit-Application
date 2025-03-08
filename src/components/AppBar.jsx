@@ -1,29 +1,32 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  AppBar as MuiAppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  MenuItem,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-
-
-const pages = ['Home', 'Dashboard', 'Admin'];
-const settings = ['Profile', 'Account', 'Logout'];
+import { useAuth } from '../context/AuthContext';
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
+  
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -36,16 +39,28 @@ function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    handleCloseUserMenu();
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    handleCloseNavMenu();
+  };
+
   return (
-    <AppBar position="static">
+    <MuiAppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <VerifiedUserIcon sx={{ p: 0, display: { xs: 'none', md: 'flex' }, mr: 1 , color: 'white'}} />
+          {/* Desktop Logo */}
+          <VerifiedUserIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant="h6"
             noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
+            component={Link}
+            to="/"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -59,10 +74,11 @@ function ResponsiveAppBar() {
             AUDIT
           </Typography>
 
+          {/* Mobile Menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
+              aria-label="menu"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
@@ -84,21 +100,29 @@ function ResponsiveAppBar() {
               }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
-              sx={{ display: { xs: 'block', md: 'none' } }}
+              sx={{
+                display: { xs: 'block', md: 'none' },
+              }}
             >
-              {pages.map((page) => (
-                <MenuItem sx={{  mt:1 }} key={page} onClick={handleCloseNavMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
-                </MenuItem>
-              ))}
+              <MenuItem onClick={() => handleNavigate('/')}>
+                <Typography textAlign="center">Home</Typography>
+              </MenuItem>
+              <MenuItem onClick={() => handleNavigate('/dashboard')}>
+                <Typography textAlign="center">Dashboard</Typography>
+              </MenuItem>
+              <MenuItem onClick={() => handleNavigate('/admin')}>
+                <Typography textAlign="center">Admin</Typography>
+              </MenuItem>
             </Menu>
           </Box>
-            <VerifiedUserIcon sx={{ p: 0, display: { xs: 'flex', md: 'none' }, mr: 1 , color: 'white'}} />
+
+          {/* Mobile Logo */}
+          <VerifiedUserIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
+            component={Link}
+            to="/"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -112,21 +136,34 @@ function ResponsiveAppBar() {
           >
             AUDIT
           </Typography>
+
+          {/* Desktop Navigation */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={handleCloseNavMenu}
-                sx={{ mt: 2, color: 'white', display: 'block' }}
-              >
-                {page}
-              </Button>
-            ))}
+            <Button
+              onClick={() => handleNavigate('/')}
+              sx={{ my: 0, color: 'white', display: 'block' }}
+            >
+              Home
+            </Button>
+            <Button
+              onClick={() => handleNavigate('/dashboard')}
+              sx={{ my: 0, color: 'white', display: 'block' }}
+            >
+              Dashboard
+            </Button>
+            <Button
+              onClick={() => handleNavigate('/admin')}
+              sx={{ my: 0, color: 'white', display: 'block' }}
+            >
+              Admin
+            </Button>
           </Box>
+
+          {/* User Profile Menu */}
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt={currentUser?.name} src="/static/images/avatar/2.jpg" />
               </IconButton>
             </Tooltip>
             <Menu
@@ -145,16 +182,18 @@ function ResponsiveAppBar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
+              <MenuItem onClick={() => handleNavigate('/profile')}>
+                <Typography textAlign="center">Profile</Typography>
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Typography textAlign="center">Logout</Typography>
+              </MenuItem>
             </Menu>
           </Box>
         </Toolbar>
       </Container>
-    </AppBar>
+    </MuiAppBar>
   );
 }
+
 export default ResponsiveAppBar;
